@@ -23,3 +23,6 @@ Firebase Realtime Database efficiently manages two types of values crucial for o
 
 Conclusion:
 In brief, our Blood Management System optimizes the coordination of blood donations by facilitating donor registration, blood search, and request submission. With a efficient processes and secure communication channels, it ensures swift access to life-saving blood donations. Our system's commitment to efficiency, security, and accessibility underscores its pivotal role in saving lives and advancing healthcare technology.
+
+Link:
+https://1drv.ms/p/s!AovigjvEJbVDjS1VSEOZy5AA-vs2?e=de2QRY
