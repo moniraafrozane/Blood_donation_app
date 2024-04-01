@@ -1,0 +1,497 @@
+import android.os.Bundle
+import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Spacer
+
+
+
+private const val TAG = "MyActivity"
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            BloodBankApp()
+        }
+
+    }
+}
+
+@Composable
+fun BloodBankApp() {
+    val navController = rememberNavController()
+
+    NavHost(navController = navController, startDestination = "home") {
+        composable("home") {
+            HomeScreen(navController = navController)
+        }
+        composable("search_donor") {
+            SearchDonorScreen(navController = navController)
+        }
+        composable("searchResultScreen/{bloodGroup}/{location}") { backStackEntry ->
+            val bloodGroup = backStackEntry.arguments?.getString("bloodGroup") ?: ""
+            val location = backStackEntry.arguments?.getString("location") ?: ""
+            SearchResultsScreen(navController = navController, bloodGroup = bloodGroup, location = location)
+        }
+        composable("donor_registration") {
+            DonorRegistrationScreen(navController = navController)
+        }
+        composable("request_blood") {
+            RequestBloodScreen(navController = navController)
+        }
+    }
+}
+
+@Composable
+fun HomeScreen(navController: NavController) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colors.background
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.picd),
+                contentDescription = "Your Image",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .padding(bottom = 16.dp)
+            )
+
+            Text(
+                text = "Donate Blood, Save Life",
+                style = MaterialTheme.typography.h4,
+                color = Color.Red, // Set text color to red
+                modifier = Modifier.padding(vertical =2.dp)
+            )
+            Text(
+                text = "PLEASE RE-REGISTER AFTER YOUR BLOOD DONATION",
+                style = MaterialTheme.typography.h6,
+                color = Color.Green, // Set text color to black
+                modifier = Modifier.padding(vertical = 12.dp)
+            )
+            Button(
+                onClick = { navController.navigate("search_donor") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(72.dp),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.Red,
+                    contentColor = Color.White
+                )
+            ) {
+                Text("Search Donor")
+            }
+            Button(
+                onClick = { navController.navigate("donor_registration") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(72.dp),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.Red,
+                    contentColor = Color.White
+                )
+            ) {
+                Text("Donor Registration")
+            }
+            Button(
+                onClick = { navController.navigate("request_blood") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(72.dp),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.Red,
+                    contentColor = Color.White
+                )
+            ) {
+                Text("Request Blood")
+            }
+
+        }
+    }
+}
+
+@Composable
+fun DonorRegistrationScreen(navController: NavController) {
+    var name by remember { mutableStateOf("") }
+    var bloodGroup by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var phn by remember { mutableStateOf("") }
+    var location by remember { mutableStateOf("") }
+    var daysAgo by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Donor Registration",
+            style = MaterialTheme.typography.h4,
+            color = Color.Red, // Set text color to red
+            modifier = Modifier.padding(vertical = 32.dp)
+        )
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Enter Your Name") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = bloodGroup,
+            onValueChange = { bloodGroup = it },
+            label = { Text("Blood Group") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Enter Your Email") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = phn,
+            onValueChange = { phn = it },
+            label = { Text("Phone Number") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = location,
+            onValueChange = { location = it },
+            label = { Text("Location") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = daysAgo,
+            onValueChange = { daysAgo = it },
+            label = { Text("Date of your Last Donation") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Button(
+            onClick = {
+                val donorInfo = DonorInfo(name, bloodGroup, email, phn, location, daysAgo) // Adjust arguments as per your DonorInfo class
+
+                val database = Firebase.firestore
+                database.collection("donors")
+                    .add(donorInfo)
+                    .addOnSuccessListener { navController.navigate("home") }
+                    .addOnFailureListener { }
+
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(72.dp),
+            colors = ButtonDefaults.buttonColors(backgroundColor = Color.Red, contentColor = Color.White)
+        ) {
+            Text("Register")
+        }
+    }
+}
+
+data class DonorInfo(
+    val name: String,
+    val bloodGroup: String,
+    val email: String,
+    val phoneNumber: String,
+    val location: String,
+    val daysAgo: String
+)
+data class RequestInfo(
+    val bloodGroup: String,
+    val location: String,
+    val date: String,
+    val phoneNumber: String
+)
+
+
+@Composable
+fun SearchDonorScreen(navController: NavController) {
+    var bloodGroup by remember { mutableStateOf("") }
+    var location by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Search Blood",
+            style = MaterialTheme.typography.h4,
+            color = Color.Red,
+            modifier = Modifier.padding(vertical = 32.dp)
+        )
+
+        OutlinedTextField(
+            value = bloodGroup,
+            onValueChange = { bloodGroup = it },
+            label = { Text("Enter Blood Type") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = location,
+            onValueChange = { location = it },
+            label = { Text("Enter Location") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Button(
+            onClick = {
+                if (bloodGroup.isNotBlank() && location.isNotBlank()) {
+                    navController.navigate("searchResultScreen/$bloodGroup/$location")
+                } else {
+                    Log.d("My Activity", "Error");
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(72.dp),
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = Color.Red,
+                contentColor = Color.White
+            )
+        ) {
+            Text("Search")
+        }
+    }
+}
+
+@Composable
+fun SearchResultsScreen(navController: NavController, bloodGroup: String, location: String) {
+    val donorList = remember { mutableStateListOf<DonorInfo>() }
+    val database = Firebase.firestore
+    var isLoading by remember { mutableStateOf(true) }
+
+    database.collection("donors")
+        .whereEqualTo("location", location)
+        .whereEqualTo("bloodGroup", bloodGroup)
+        .get()
+        .addOnSuccessListener {docs ->
+            donorList.clear()
+            isLoading = false
+            for(doc in docs) {
+                val data = doc.data
+                val donor = DonorInfo(data["name"].toString(), data["bloodGroup"].toString(), data["email"].toString(), data["phoneNumber"].toString(), data["location"].toString(), data["daysAgo"].toString())
+                donorList.add(donor)
+            }
+        }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Search Results",
+            style = MaterialTheme.typography.h4,
+            color = Color.Red,
+            modifier = Modifier.padding(vertical = 32.dp)
+        )
+
+        if(isLoading) {
+            Text(
+                text = "Loading data ...",
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
+        else {
+            if (donorList.isEmpty()) {
+                Text(
+                    text = "No donors found for blood type: $bloodGroup at location: $location",
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            } else {
+                donorList.forEach { donorInfo ->
+                    Text(
+                        text = "Name: ${donorInfo.name}\n" +
+                                "Blood Group: ${donorInfo.bloodGroup}\n" +
+                                "Email: ${donorInfo.email}\n" +
+                                "Phone: ${donorInfo.phoneNumber}\n" +
+                                "Location: ${donorInfo.location}\n"+
+                                "date of last Donation: ${donorInfo.daysAgo}",
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+            }
+            Button(
+                onClick = {
+                    navController.navigate("search_donor")
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(72.dp),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.Red,
+                    contentColor = Color.White
+                )
+            ) {
+                Text("Back to Search")
+            }
+        }
+    }
+}
+
+@Composable
+fun RequestBloodScreen(navController: NavController) {
+    var bloodGroup by remember { mutableStateOf("") }
+    var location by remember { mutableStateOf("") }
+    var date by remember { mutableStateOf("") }
+    var phn by remember { mutableStateOf("") }
+
+    // State to hold the list of blood requests
+    val requestList = remember { mutableStateListOf<RequestInfo>() }
+
+    // Fetch the blood requests from Firebase Firestore
+    LaunchedEffect(Unit) {
+        val database = Firebase.firestore
+        database.collection("request")
+            .get()
+            .addOnSuccessListener { documents ->
+                requestList.clear()
+                for (document in documents) {
+                    val data = document.data
+                    val request = RequestInfo(
+                        bloodGroup = data["bloodGroup"].toString(),
+                        location = data["location"].toString(),
+                        date = data["date"].toString(),
+                        phoneNumber = data["phoneNumber"].toString()
+                    )
+                    requestList.add(request)
+                }
+            }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Request Blood",
+            style = MaterialTheme.typography.h4,
+            color = Color.Red,
+            modifier = Modifier.padding(vertical = 32.dp)
+        )
+
+        OutlinedTextField(
+            value = bloodGroup,
+            onValueChange = { bloodGroup = it },
+            label = { Text("Enter Required Blood Type") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = location,
+            onValueChange = { location = it },
+            label = { Text("Enter Location") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = date,
+            onValueChange = { date = it },
+            label = { Text("Date") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = phn,
+            onValueChange = { phn = it },
+            label = { Text("Phone Number") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Button(
+            onClick = {
+                val requestInfo = RequestInfo(bloodGroup, location, date, phn)
+                val database = Firebase.firestore
+                database.collection("request")
+                    .add(requestInfo)
+                    .addOnSuccessListener {
+                        Log.d(TAG, "Requested successful")
+                        navController.navigate("home")
+                    }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
+            colors = ButtonDefaults.buttonColors(backgroundColor = Color.Red, contentColor = Color.White)
+        ) {
+            Text("Request")
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+        Text(
+            text = "Existing Blood Requests:",
+            style = MaterialTheme.typography.h5,
+            color = Color.Red,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+        if (requestList.isEmpty()) {
+            Text(
+                text = "No blood requests found",
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        } else {
+            requestList.forEachIndexed { index, requestInfo ->
+                Text(
+                    text = "${index + 1}. Blood Group: ${requestInfo.bloodGroup}, Location: ${requestInfo.location}, Date: ${requestInfo.date}, Phone Number: ${requestInfo.phoneNumber}",
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DefaultPreview() {
+    BloodBankApp()
+}
